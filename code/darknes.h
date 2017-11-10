@@ -2,6 +2,8 @@
 #ifndef _DARKNES_H_
 #define _DARKNES_H_
 
+#define DEBUG
+
 #ifdef DEBUG
 #define Assert(Expression) if(!(Expression)) {*(int *)0 = 0;}
 #else
@@ -17,6 +19,12 @@ typedef unsigned int u32;
 typedef unsigned long u64;
 
 typedef float f32;
+
+#define KB(X) ((X)*1024)
+
+// Platform dependant unfortunately
+internal void
+Print(char* fmt, ...);
 
 //
 // Cartridge
@@ -39,15 +47,26 @@ struct nes2_flags
 
 struct nes2_header
 {
-   u8 FormatId[4];
-   u8 ProgramPages;
-   u8 CharacterPages;
+   u32 FormatId;
+   u8 PrgPages;
+   u8 ChrPages;
    nes2_flags Flags;
-   u8 Spare[8];
+   u8 RamBanks;
+   u8 Spare[7];
+};
+
+struct rom_spec
+{
+   u8 MapperNumber;
+   u32 PrgSize;
+   u32 ChrSize;
+   u32 PrgRamSize;
 };
 
 struct cart
 {
+   rom_spec RomSpec;
+
    u32 RomSize;
    u8* Rom;
 };
@@ -61,6 +80,33 @@ struct input
 // CPU
 //
 
+enum interrupt_type
+{
+   Interrupt_Nmi,
+   Interrupt_Reset,
+   Interrupt_IrqBrk,
+
+   Interrupt_TypeCount,
+};
+
+#pragma pack(push, 1)
+union status_register
+{
+   struct 
+   {
+      u8 Carry             : 1;
+      u8 Zero              : 1;
+      u8 InterruptDisable  : 1;
+      u8 DecimalMode       : 1;
+      u8 BreakCommand      : 1;
+      u8 Unused            : 1;
+      u8 Overflow          : 1;
+      u8 Negative          : 1;
+   };
+   u8 Value;
+};
+#pragma pack(pop)
+
 struct cpu
 {
    u32 CyclesRemaining;
@@ -71,7 +117,7 @@ struct cpu
 
    u16 PC;
    u8 S;    // Stack Pointer
-   u8 P;    // Status Register
+   status_register P;    // Status Register
 };
 
 
@@ -109,12 +155,12 @@ struct ppu_control
 
 struct ppu_mask
 {
-   u8 Greyscale      : 1;
-   u8 BackgroundLeft : 1;
-   u8 SpriteLeft     : 1;
+   u8 Greyscale        : 1;
+   u8 BackgroundLeft   : 1;
+   u8 SpriteLeft       : 1;
    u8 BackgroundEnable : 1;
-   u8 SpriteEnable   : 1;
-   u8 ColorEmphasis  : 3;
+   u8 SpriteEnable     : 1;
+   u8 ColorEmphasis    : 3;
 };
 
 struct ppu_status
@@ -158,6 +204,7 @@ struct nes
    ppu Ppu;
    apu Apu;
 
+   u32 RamSize;
    u8* Ram;
 
    cart Cart;

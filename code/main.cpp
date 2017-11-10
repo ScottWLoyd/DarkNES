@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <windows.h>
 
 #include "darknes.h"
@@ -240,6 +241,11 @@ GetRomName(char* CommandLine)
    return CommandLine;
 }
 
+internal void
+Print(char* fmt, ...)
+{
+
+}
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -299,6 +305,8 @@ WinMain(HINSTANCE Instance,
          input Input = {0};
          GlobalRunning = true;
          
+         PowerOn(&Nes);
+
          while(GlobalRunning)
          {
             // TODO: limit this to 60 HZ? or account for
