@@ -1,4 +1,8 @@
 build
-data
 *.sublime-project
 *.sublime-workspace
+.vs
+data
+Debug
+Release
+x64
